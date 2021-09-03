@@ -13,14 +13,15 @@ import asyncio
 loop = asyncio.new_event_loop()
 
 # Import base classes
-from .classes import Script
-from .classes import Terminal
+from .classes.script import Script
+from .classes.terminal import Terminal
 
 # Create Terminal class
 terminal = Terminal()
 # Create aliases
 term = terminal
 t = terminal
+terminal.init()
 
 
 

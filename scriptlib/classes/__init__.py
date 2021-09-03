@@ -1,2 +1,3 @@
-from .script import Script
-from .terminal import Terminal
+from . import script
+from . import terminal
+from . import console
