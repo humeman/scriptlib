@@ -32,3 +32,4 @@ s = script
 
 # Import everything else
 from .funcs import *
+from . import subscripts

@@ -3,7 +3,7 @@ import blessed
 import os
 import signal
 import re
-from typing import Optional
+from typing import Optional, List
 import termios
 import tty
 
@@ -47,9 +47,11 @@ class Terminal:
         
         self.term = blessed.Terminal()
 
+        self.console = Console()
+
         # Start stuff
         tty.setcbreak(self.term._keyboard_fd, termios.TCSANOW)
-        print(self.term.enter_fullscreen + self.term.clear + self.term.clear)
+        print(self.term.enter_fullscreen + self.term.home + self.term.clear)
 
         self.lines = []
         self.title = "Test"
@@ -76,7 +78,6 @@ class Terminal:
         signal.signal(signal.SIGWINCH, self.update_size)
 
         self.expand_colors()
-        self.console = Console()
 
         self.update_size() # Start!
 
@@ -142,10 +143,17 @@ class Terminal:
             if do:
                 func()
 
+        # Might be the single strangest bug I've dealt with, but
+        # the cursor gets desynced if I don't run this twice.
+        # Hopefully temporary. Who knows.
+        # TODO: FIX THIS
+        if console or all:
+            self.print_console()
+
     def log(
             self,
-            message: str,
-            update: bool = False
+            *message: List[str],
+            update: Optional[bool] = None
         ) -> None:
         """
         Logs a message to the terminal.
@@ -154,6 +162,21 @@ class Terminal:
             message: str - Message to log
             update: bool - Automatically redraw
         """
+
+        comp_msg = []
+
+        for i, msg in enumerate(message):
+            if i == len(message) - 1 and update is None and type(msg) == bool:
+                update = msg
+                break
+
+            if type(msg) != str:
+                # Repr it to prevent errors
+                msg = repr(msg)
+
+            comp_msg.append(msg)
+
+        message = ", ".join(comp_msg)
 
         self.lines.append(message)
 
@@ -316,7 +339,6 @@ class Terminal:
             if self.console.mode == ConsoleModes.REGULAR:
                 form = f"{self.color['console']}{colors.TerminalColors.BOLD}${colors.TerminalColors.RESET} {self.color['console']}{self.console.current[ConsoleModes.REGULAR]}{colors.TerminalColors.RESET}"
 
-
             elif self.console.mode == ConsoleModes.ASK:
                 form = f"{self.color['ask']}{colors.TerminalColors.BOLD}>{colors.TerminalColors.RESET} {self.color['ask']}{self.console.current[ConsoleModes.ASK]}{colors.TerminalColors.RESET}"
 
@@ -329,11 +351,9 @@ class Terminal:
 
             print(form, end = "")
 
-        print(self.term.move_xy(4 + self.console.location, self.term.height - 2))
-
         # Move cursor to console location
         #self.log(str(self.console.location), True)
-        #print(self.term.move_xy(4 + self.console.location, self.term.height - 2), end = "")#, end = "")
+        print(self.term.move_xy(self.console.location + 4, self.term.height - 2), end = "")
 
     def print_logs(
             self
@@ -372,9 +392,9 @@ class Terminal:
 
                     bounds = self.term.width - 3 - (2 if line_numbers else 0) - len(ext) + (len(line) - len(stripped))
 
-                    print(" " * self.term.height, self.term.move_x(2), end = "")
+                    spacer = " " * (self.term.width - 6 - len(ext) - len(stripped))
 
-                    print(f"{ext}{line[:bounds]}{self.term.move_x(self.term.width - 3)}{self.color['info']}{scrollbar[i]}{colors.TerminalColors.RESET}", end = "")
+                    print(f"{ext}{line[:bounds]}{spacer}{self.term.move_x(self.term.width - 3)}{self.color['info']}{scrollbar[i]}{colors.TerminalColors.RESET}", end = "")
 
     def generate_scrollbar(
             self

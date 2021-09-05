@@ -11,6 +11,7 @@ import re
 import asyncio
 import traceback
 from enum import Enum
+from typing import Callable
 
 from .terminal import ConsoleModes
 from ..utils import (
@@ -53,7 +54,7 @@ class Console:
         self.shutdown = False
 
         self.sequences = {
-            343: Actions.execute, # Enter
+            343: Actions.execute, # Enter # Good
             263: Actions.backspace, # Backspace
             330: Actions.delete, # Delete
             337: lambda *args: Actions.history(*args, -1), #lambda *args: Actions.scroll(*args, -1), # Shift arrow up
@@ -261,6 +262,7 @@ class Actions:
         self.term.log(f"{self.term.color[mode]}{colors.TerminalColors.BOLD}{char} {colors.TerminalColors.RESET}{self.term.color[mode]}{current}", True)
         self.set_current("")
         self.location = 0
+        self.hist_current = None
 
     def backspace(
             self,
@@ -283,17 +285,19 @@ class Actions:
         elif char in ["\x08", "\x17"]:
             # Ctrl backspace
             # Start at index, remove until first char not in "abcd...."
+            low_index = Actions.find_next( # TODO: Move to utils
+                lambda char: char.lower() not in chars,
+                lambda i: i == self.location - 1,
+                reversed(list(enumerate(inp[:self.location]))),
+                0
+            )
 
-            low_index = 0
-            for i, ch in reversed(list(enumerate(inp[:self.location]))):
-                if ch.lower() in chars:
-                    # Stop searching - remove everything after
-                    low_index = i + 1
-                    break
-                
+            if low_index != 0:
+                low_index += 1
+
             # Remove everything in between
             self.set_current(f"{inp[:low_index]}{inp[self.location:]}")
-            self.location = low_index - 1
+            self.location = low_index
 
     def delete(
             self,
@@ -344,22 +348,65 @@ class Actions:
 
         current = self.get_current()
 
-        scroll_to = self.location
-
         if direction > 0:
             # Find first non-alpha char after location.
-            for i, char in enumerate(current[self.location + 1:]):
-                if char.lower() not in chars:
-                    scroll_to = i
-                    break
+            scroll_to = Actions.find_next(
+                lambda char: char.lower() not in chars,
+                lambda i: i == self.location + 1,
+                [(i + self.location + 1, x) for i, x in enumerate(current[self.location + 1:])],
+                len(current)
+            )
 
         else:
-            for i, char in reversed(list(enumerate(current[:self.location]))):
-                if char.lower() not in chars:
-                    scroll_to = i
-                    break
+            scroll_to = Actions.find_next(
+                lambda char: char.lower() not in chars,
+                lambda i: i == self.location - 1,
+                reversed(list(enumerate(current[:self.location]))),
+                0
+            )
 
         self.location = scroll_to
+
+    def find_next(
+            charset: Callable,
+            trigger: Callable,
+            chars,
+            default: int = 0
+        ) -> int:
+        """
+        Returns the next instance of the specified charset.
+        
+        Arguments:
+            charset: Callable - If condition to satisfy.
+                ex: lambda char: char.lower() not in chars
+            trigger: Callable - Skip condition to meet.
+                ex: lambda i: i == self.location - 1
+            chars: List[Tuple(int, str)] - String to search
+            default: int - Location to return if nothing found
+
+        Returns:
+            location: int - Location found.
+        """
+        skip = False
+        scroll_to = default
+
+        for i, char in chars:
+            if charset(char):
+                if trigger(i):
+                    skip = True
+                    continue
+
+                if skip:
+                    continue
+
+                scroll_to = i
+                break
+
+            elif skip:
+                scroll_to = i
+                break
+
+        return scroll_to
 
     def scroll_console(
             self,
