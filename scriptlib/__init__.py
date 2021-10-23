@@ -8,6 +8,22 @@ https://github.com/humeman/scriptlib
 """
 version = "0.0a"
 
+# IMPORTANT NOTE TO SELF: DON'T PUT F-STRINGS IN THIS FILE
+# SEE CODE DIRECTLY BELOW THIS FOR REASON WHY
+
+# Validate version
+import sys
+
+version = sys.version_info
+
+if version[0] != 3 or version[1] < 6:
+    print("ERROR: Can't run. You need Python 3.6 or higher - you're running Python {}.{}. Install via PPA (linux) or python.org (windows).".format(version[0], version[1]))
+    
+    if version[0] == 2:
+        print("Side note: You're on Python 2, which is unsupported. Try running using 'python3' instead of 'python'.")
+        
+    sys.exit(1)
+
 # Set up asyncio stuff
 import asyncio
 loop = asyncio.new_event_loop()

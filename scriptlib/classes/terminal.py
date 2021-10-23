@@ -6,6 +6,8 @@ import re
 from typing import Optional, List
 import termios
 import tty
+from scriptlib.classes import script
+import asyncio
 
 from scriptlib.utils import (
     colors
@@ -56,6 +58,8 @@ class Terminal:
         self.lines = []
         self.title = "Test"
         self.line_numbers = True
+        self.disable_log = False
+        self.ask_mode = {}
 
         self.location = 0
         self.manual_scroll = False
@@ -128,6 +132,9 @@ class Terminal:
             logs: bool - Redraw log section
             console: bool - Redraw console box
         """
+
+        if self.disable_log:
+            return
 
         if all:
             print(self.term.clear, end = "")
@@ -340,7 +347,7 @@ class Terminal:
                 form = f"{self.color['console']}{colors.TerminalColors.BOLD}${colors.TerminalColors.RESET} {self.color['console']}{self.console.current[ConsoleModes.REGULAR]}{colors.TerminalColors.RESET}"
 
             elif self.console.mode == ConsoleModes.ASK:
-                form = f"{self.color['ask']}{colors.TerminalColors.BOLD}>{colors.TerminalColors.RESET} {self.color['ask']}{self.console.current[ConsoleModes.ASK]}{colors.TerminalColors.RESET}"
+                form = f"{self.color['ask']}{colors.TerminalColors.BOLD}>{colors.TerminalColors.RESET} {self.color['ask']}{self.console.current[ConsoleModes.ASK] if len(self.console.current[ConsoleModes.ASK]) > 0 else self.ask_mode['placeholder']}{colors.TerminalColors.RESET}"
 
             else:
                 raise NotImplementedError()
@@ -471,7 +478,50 @@ class Terminal:
 
         return f"{' ' * padding}{message}{' ' * padding}"
 
+    async def ask(
+            self,
+            question: str,
+            hint: str,
+            placeholder: str
+        ):
+        """
+        Asks for input from the console line.
         
+        Arguments:
+            question: str
+            hint: str
+            placeholder: str
+        """
+
+        # Shame.
+        if "script" not in globals():
+            global script
+            from scriptlib import script
+
+        script.logger.log_ask(question, hint)
+
+        self.ask_mode.update(
+            {
+                "active": True,
+                "complete": False,
+                "placeholder": placeholder
+            }
+        )
+
+        self.console.mode = ConsoleModes.ASK
+
+        self.console.current[ConsoleModes.ASK] = ""
+
+        self.reprint(log_console = True)
+
+        while not self.ask_mode["complete"]:
+            await asyncio.sleep(0.1)
+
+        self.log(f"{self.color['ask']}{colors.TerminalColors.BOLD}> {colors.TerminalColors.RESET}{self.color['ask']}{self.ask_mode['current']}")
+
+        self.reprint(log_logs = True)
+
+        return self.console.current[ConsoleModes.ASK]
 
 
 

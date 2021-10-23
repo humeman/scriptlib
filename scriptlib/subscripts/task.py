@@ -11,7 +11,11 @@ from scriptlib.utils import (
     exceptions
 )
 
-class TaskSubscript:
+from scriptlib.classes.subscript import (
+    Subscript
+)
+
+class TaskSubscript(Subscript):
     """
     Task-based subscript.
     
@@ -29,11 +33,14 @@ class TaskSubscript:
     """
     def __init__(
             self,
-            *tasks
+            *tasks,
+            **kwargs
         ) -> None:
         """
         Initializes the object.
         """
+
+        super().__init__(**kwargs)
 
         # Define task structure.
         self.req = { # TODO: Use arg parser

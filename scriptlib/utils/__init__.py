@@ -1,5 +1,7 @@
 from . import (
     errorhandler,
     exceptions,
-    colors
+    colors,
+    strutils,
+    timeutils
 )

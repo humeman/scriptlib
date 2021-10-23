@@ -1,0 +1,63 @@
+#                _       _   _ _ _     
+#               (_)     | | | (_) |    
+#  ___  ___ _ __ _ _ __ | |_| |_| |__  
+# / __|/ __| '__| | '_ \| __| | | '_ \ 
+# \__ \ (__| |  | | |_) | |_| | | |_) |
+# |___/\___|_|  |_| .__/ \__|_|_|_.__/ 
+#                 | |                  
+#                 |_|      by humeman
+
+# This is a sample configuration file for a scriptlib script.
+
+# An alphanumeric & lowercase name.
+name: test
+
+# User-friendly name. Can include special characters & caps.
+case_name: Test
+
+# Version number. Can be any string - you decide.
+version: "1.0"
+
+# Overrides the default log color for logging types.
+# Color guide:
+  # Basic colors: dark_[color], [color], or light_[color]
+  # Custom colors: &[256-color code, https://jonasjacek.github.io/colors]
+log_colors:
+  success: green
+  warn: yellow
+  error: red
+  info: default
+  debug: default
+  start: blue
+  stop: blue
+  ask: magenta
+  obj: magenta
+
+# Overrides the format used to print logs.
+# You can use the following placeholders:
+# (surround with %)
+#   color bold reset underline reversed reverseopt
+#   boldopt time timep timef timepf logtype logtypel
+#   message category
+# You can override the following types:
+#   log step long raw
+log_formats: {}
+  #log: "the"
+
+# Enable/disable log types.
+logging:
+  tasks: false
+  start: true
+  init: true
+  stop: true
+  shutdown: true
+  unhandlederror: true
+  config: true
+  ws: true
+  subprocess: true
+  user: true
+  ask: true
+
+# Timezone to use. Should be the TZ database name.
+# See: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+timezone: America/Denver

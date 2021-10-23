@@ -1,0 +1,15 @@
+# Types file for the config.
+# Passed through the argument validator. This file contains all the rules for that.
+# Seems confusing. You're right, it is.
+
+# https://github.com/humeman/humecord/blob/main/docs/misc/argparser.md
+
+name: str[alnum()&len(1,16)]
+case_name: str[len(1, 64)]
+version: str[len(1, 16)]
+
+log_colors: dict[key(str[in(success,warn,error,info,debug,start,stop,ask,obj)])&value(str)]
+log_formats: dict[key(str[in(log,step,long,raw)])&value(str[len(1,200)])]
+logging: dict[key(str[in(tasks,start,init,stop,shutdown,unhandlederror,config,ws,subprocess,user,ask)])&value(bool)]
+
+timezone: str[includes(/)]

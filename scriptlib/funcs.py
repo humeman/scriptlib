@@ -25,29 +25,31 @@ def start(
     Parameters:
         config: dict - kwargs passed to scriptlib.script.init().
     """
+
+    scriptlib.loop.set_exception_handler(errorhandler.catch_asyncio)
+
     try:
         errorhandler.wrap_sync(
             start_terminal
         )
 
         scriptlib.loop.run_until_complete(
-            run(*args, **kwargs)
+            errorhandler.wrap(
+                run(*args, **kwargs)
+            )
         )
 
         scriptlib.loop.run_forever()
 
-    except (exceptions.InitError):
+    except KeyboardInterrupt as e:
         cleanup()
-        # TODO: Integrate into terminal
-        print("Init error")
 
     except (exceptions.CloseLoop):
         cleanup()
-        print("Done!")
 
     except:
         cleanup()
-        print("An unexpected error was encountered, so the script is exiting.")
+        print("An unexpected pre-initialization error was encountered, so the script is exiting.")
         traceback.print_exc()
 
 async def run(
@@ -59,9 +61,10 @@ async def run(
     Parameters:
         config: dict - kwargs passed to scriptlib.script.init().
     """
-
+    
     for task in [
-            scriptlib.script.init(**config)
+            scriptlib.script.init(**config),
+            scriptlib.script.run()
         ]:
 
         await errorhandler.wrap(
@@ -71,6 +74,8 @@ async def run(
 def cleanup() -> None:
     # Shuts down everything cleanly.
     # Event loop should not be running anymore.
+
+    scriptlib.t.disable_log = True
 
     # Async tasks
     for task in [

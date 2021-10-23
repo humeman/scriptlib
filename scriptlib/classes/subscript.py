@@ -1,8 +1,5 @@
 """
-scriptlib.classes.subscripts
-
-Holds all the extensible subscript classes.
-Check the docs for more, when I make those.
+scriptlib.classes.subscript.Subscript
 """
 
 from enum import Enum
@@ -11,9 +8,8 @@ from scriptlib.utils import (
     exceptions
 )
 
-
 class SubscriptTypes(Enum):
-    ACTIONS = 0
+    NONE = 0
 
 
 class Subscript:
@@ -27,6 +23,9 @@ class Subscript:
         self.name
         self.description
         self.type
+        self.auto_run
+
+        async self.run()
         etc.
 
     (Docs might come later. Look out for those.)
@@ -37,7 +36,9 @@ class Subscript:
     def __init__(
             self,
             name: str = "A script",
-            description: str = "If you see this, whoever made this script is lazy and didn't edit the description. SHAME!"
+            description: str = "If you see this, whoever made this script is lazy and didn't edit the description. SHAME!",
+            script_type: SubscriptTypes = SubscriptTypes.NONE,
+            run: bool = True
         ) -> None:
         """
         Initializes a Subscript class.
@@ -47,12 +48,29 @@ class Subscript:
         ensure this calls:
         
         super().__init__(*args, **kwargs)
+
+        Arguments:
+            name: str
+            description: str
+            script_type: scriptlib.classes.subscript.SubscriptTypes (Enum)
+            run: bool
         """
 
         self.name = name
         self.description = description
 
-        self.type = SubscriptTypes.ACTIONS
+        self.type = script_type
+
+        self.auto_run = run
+
+    async def start(
+            self
+        ) -> None:
+        """
+        Starts the script.
+        """
+
+        await self.run()
 
     async def run(
             self
