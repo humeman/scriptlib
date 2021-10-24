@@ -255,12 +255,18 @@ class Actions:
         Executes a command.
         """
 
+        if self.mode == ConsoleModes.ASK:
+            scriptlib.terminal.ask_mode["complete"] = True
+
         current = self.get_current()
         self.history.append(current)
 
         mode, char = console_headers[self.mode]
         self.term.log(f"{self.term.color[mode]}{colors.TerminalColors.BOLD}{char} {colors.TerminalColors.RESET}{self.term.color[mode]}{current}", True)
-        self.set_current("")
+
+        if self.mode == ConsoleModes.REGULAR:
+            self.set_current("")
+
         self.location = 0
         self.hist_current = None
 

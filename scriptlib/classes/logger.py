@@ -56,7 +56,9 @@ class Logger:
             "user": True,
             "ask": True,
             "debug": True,
-            "menu": True
+            "menu": True,
+            "script": True,
+            "subscript": True
         }
 
         self.format = {

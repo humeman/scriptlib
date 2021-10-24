@@ -32,6 +32,9 @@ async def wrap(
 
     except Exception as e:
         handle_errors(e)
+        return False
+
+    return True
 
 def wrap_sync(
         func: Callable,

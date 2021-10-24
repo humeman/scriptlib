@@ -3,5 +3,6 @@ from . import (
     exceptions,
     colors,
     strutils,
-    timeutils
+    timeutils,
+    userutils
 )

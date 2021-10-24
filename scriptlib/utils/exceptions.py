@@ -49,3 +49,9 @@ class DevError(Exception):
     When a general config/backend error happens
     due to you doing something wrong.
     """
+
+class ScriptFailed(Exception):
+    """
+    User exception for when a script fails to
+    execute properly.
+    """

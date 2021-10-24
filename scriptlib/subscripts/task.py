@@ -8,7 +8,8 @@ from typing import Iterable, Optional
 import asyncio
 
 from scriptlib.utils import (
-    exceptions
+    exceptions,
+    errorhandler
 )
 
 from scriptlib.classes.subscript import (
@@ -57,6 +58,9 @@ class TaskSubscript(Subscript):
 
         if len(tasks) > 0:
             self.add_tasks(*tasks)
+
+        global script
+        from scriptlib import script
 
     def validate_task(
             self,
@@ -138,3 +142,17 @@ class TaskSubscript(Subscript):
         Returns:
             status_code: Optional[int] - Status code, if tasks returned any.
         """
+
+        for i, (name, task) in enumerate(self.tasks.items()):
+            # Log it
+            script.logger.log("info", "subscript", f"Running task {task['name']}: {task['description']} ({i + 1}/{len(self.tasks)})")
+
+            # Do it
+            res = await errorhandler.wrap(
+                task['function']()
+            )
+
+            if not res:
+                # Error occurred -- exit
+                script.logger.log("error", "subscript", f"An error occurred while executing task {task['name']}. Exiting subscript.")
+                return

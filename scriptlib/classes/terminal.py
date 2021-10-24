@@ -6,7 +6,6 @@ import re
 from typing import Optional, List
 import termios
 import tty
-from scriptlib.classes import script
 import asyncio
 
 from scriptlib.utils import (
@@ -512,14 +511,17 @@ class Terminal:
 
         self.console.current[ConsoleModes.ASK] = ""
 
-        self.reprint(log_console = True)
+        self.reprint(console = True)
 
         while not self.ask_mode["complete"]:
             await asyncio.sleep(0.1)
 
-        self.log(f"{self.color['ask']}{colors.TerminalColors.BOLD}> {colors.TerminalColors.RESET}{self.color['ask']}{self.ask_mode['current']}")
+        self.console.mode = ConsoleModes.REGULAR
+        self.reprint(True)
 
-        self.reprint(log_logs = True)
+        self.log(f"{self.color['ask']}{colors.TerminalColors.BOLD}> {colors.TerminalColors.RESET}{self.color['ask']}{self.console.current[ConsoleModes.ASK]}")
+
+        self.reprint(logs = True)
 
         return self.console.current[ConsoleModes.ASK]
 
